@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 18 12:11:59 2024
+Created on Thu Mar 27 13:29:55 2025
 
 @author: elizabethespinosa
 """
@@ -9,17 +9,17 @@ Created on Thu Jan 18 12:11:59 2024
 import numpy as np
 
 """ Function to Compute Bayes R2 for pooled or hierarchical/multilevel models """
-""" Takes data (DF), trace, observed outcome 'yvar', 
+""" Takes data (DF), linkfunction ('logit' or 'identity'), trace, observed outcome 'yvar', 
     selected vars from dataframe 'selvas',
     variable labels from posterior estimates 'varpost',
     boolean var 'hierarchical= TRUE/FALSE'
     multilevel variable in dataframe 'multilevelvar' {0, 1, 2, ...},
-    number of chains 'cahinum',
+    number of chains 'chainum',
     number of draws per chain 'ndraws',
     number of levels 'nlevels',
      """
     
-def Bayesian_Rsquared(DF, trace, yvar,selvars, varspost, hierarchical, multilevelvar, chainum, ndraws, nlevels):
+def Bayesian_Rsquared(DF, linkfunction, trace, yvar,selvars, varspost, hierarchical, multilevelvar, chainum, ndraws, nlevels):
 
     Rsquared= []
     DF['cons']= 1
@@ -39,7 +39,10 @@ def Bayesian_Rsquared(DF, trace, yvar,selvars, varspost, hierarchical, multileve
                         betas.append(betas_array[f])
                     betas= np.asarray(betas) 
                     XB= np.dot(Xmatrix, betas.T)
-                    ypred= np.exp(XB)/(1+np.exp(XB))
+                    if linkfunction== 'logit':
+                        ypred= np.exp(XB)/(1+np.exp(XB))
+                    elif linkfunction== 'identity':
+                        ypred= XB
                     Ywave.append(ypred) #Y fitted| params
                     Yres.append(Yarray- ypred)  # Y residual
             else: 
@@ -51,7 +54,11 @@ def Bayesian_Rsquared(DF, trace, yvar,selvars, varspost, hierarchical, multileve
                     betas.append(trace['posterior'][x][c][d])#get vector of parameters
                 betas= np.asarray(betas) 
                 XB= np.dot(Xmatrix, betas.T)
-                ypred= np.exp(XB)/(1+np.exp(XB))
+                if linkfunction== 'logit':
+                    ypred= np.exp(XB)/(1+np.exp(XB))
+                elif linkfunction== 'identity':
+                    ypred= XB
+                
                 Ywave.append(ypred) #Y fitted| params
                 Yres.append(Yarray- ypred)  # Y residual
 
